@@ -18,14 +18,30 @@ public class data {
 	public final static int BUYER = 100;
 	public final static int SELLER = 100;
 	public final static int manf = 100;
-	public final static int Tran =1000;
+	public final static int total_Tran =1000;//total number of number * sell or number * purchase
+	public static int Tran; //we assume each platform has same amount of transactions. so tran%numofpla should be 0;
 	public static String[] platform = new String[numofpla];// we have 10 platforms 
-
+	public static ArrayList amount;
 	
 	//generate a random string with LENGTH defined above
 	public data(){
 		platform = genKeyS(numofpla);
+		int sum = 0;
+		amount = new ArrayList();
+		int num = 10;
+		while(true){
+			if(total_Tran - sum < 10){		
+				amount.add(total_Tran - sum);
+				break;
+			}	
+			int a = new Random().nextInt(num);
+			sum += a;
+			amount.add(a);
+		}
+		Tran = amount.size();
+		
 	}
+	
 	public static String genString(int length){
 		Random random = new Random();
 		StringBuffer buf = new StringBuffer();
@@ -77,39 +93,24 @@ public class data {
 		return platform;
 	}
 	
-	//shuffle array
-	public static void ShuffleArray(int[] array)
-	{
-	    int index;
-	    Random random = new Random();
-	    for (int i = array.length - 1; i > 0; i--)
-	    {
-	        index = random.nextInt(i + 1);
-	        if (index != i)
-	        {
-	            array[index] ^= array[i];
-	            array[i] ^= array[index];
-	            array[index] ^= array[i];
-	        }
-	    }
-	}
 	
 	//for simplicity we assume each platform has same number of item
 	public static String[][] genKeyIS(int num){
+		// key in hs is platformID, and values are itemID sold in that platformID
 		HashMap<String, HashSet<Integer>> hs = new HashMap<String, HashSet<Integer>>();
 		for (int i = 0; i < numofpla; i++){
-			HashSet<Integer> numofitems= new HashSet<Integer>();
-			while(numofitems.size() < (num/numofpla)){
-				numofitems.add(genInt(LENGTH ));
+			HashSet<Integer> hs2= new HashSet<Integer>();
+			while(hs2.size() < (num/numofpla)){
+				hs2.add(genInt(LENGTH ));
 			}
-			hs.put(platform[i], numofitems);
+			hs.put(platform[i], hs2);
 		}
-		//done value creation
+	
 		
 	String[][] key = new String[num][2];
 	int count = 0;
-
 	   for(int i = 0; i < numofpla; i++){
+		   //tempo array store all itemID sold in platform[i]
 		   Integer[] tempo =  hs.get(platform[i]).toArray(new Integer[num/numofpla]);
 			for(int j = 0; j < (num/numofpla); j++){
 				key[count][0]= tempo[j].toString();
@@ -119,36 +120,10 @@ public class data {
 		
 		}
 	
-
 	   return key;
 	
 	}
-	/*
-	//generate key with two attributes(int, String) for tables
-	public static String[][] genKeyIS(int num){
-		HashMap<Integer, String> hs = new HashMap<Integer, String>();
-		ArrayList<Integer> key1 = new ArrayList<Integer>();
-		while(hs.size()< num){
-			int in = genInt(LENGTH);
-			if(!hs.containsKey(in)){
-				hs.put(in, genString(LENGTH));
-				key1.add(in);
-			}
-
-		}
-		
-		String[][] key = new String[num][2];
-		Iterator it = key1.iterator();
-		for(int i = 0; i<num; i++){
-			Integer tempo = (Integer) it.next();
-			key[i][0]= tempo.toString();
-			key[i][1] = (String) hs.get(tempo);
-		}
-		
-		return key;
-	}
 	
-*/
 	
 
 	public static void genTxt() throws IOException{
@@ -163,10 +138,14 @@ public class data {
 	     String[][] itemKey = genKeyIS(ITEM);
 	     String[][] buyerKey = genKeyIS(BUYER);
 	     String[][] sellerKey = genKeyIS(SELLER);
-	     String[][] TranKey = genKeyIS(Tran);
+	   //  String[][] TranKey = genKeyIS(total_Tran);
+	     String[][] TranKey = genKeyIS(Tran+(5-Tran%5));
 	     String[] manfKey = genKeyS(manf);
 	     
-
+		/*use two hashmaps to generate random num of purchases of buyer and num of sells of seller on same platform in each 
+		transaction generation. This method guarantees that the total number of purchases equals total number of sells, which also equals total number of transactions. This method also simulate the real situation that some buyer or seller may 
+		not has start their purchase or sell yet. So we only have their registered information without any transaction history.
+		*/
 	 	 HashMap<String, Integer> hsSeller = new HashMap<String, Integer>();
 		 HashMap<String, Integer> hsBuyer = new HashMap<String, Integer>();
 	     for (int i =0; i < manf; i++){
@@ -181,54 +160,63 @@ public class data {
 	     
 	     //generate transaction. ( for each platform, generate a random buyID, a random SellerID, random a ItemID) 
 	     for(int i = 0; i < Tran; i++){
+	    	// System.out.println(Tran);
+	    	// System.out.println("Im in cycle " + i);
 	    	 String pl =TranKey[i][1];
 	    	 int itemINDEX = new Random().nextInt(ITEM);
 	    	 while(!itemKey[itemINDEX][1].equals(pl)){
 	    		 itemINDEX = new Random().nextInt(ITEM);
+	    		// System.out.println(itemKey[itemINDEX][1] + " " + pl);
 	    	 }
-	    
+	    //	 System.out.println("problem  item" + i);
+	    	 
 	    	 Integer sellerINDEX = new Random().nextInt(SELLER);
 	    	 while(!sellerKey[sellerINDEX][1].equals(pl)){
 	    		 sellerINDEX  = new Random().nextInt(SELLER);
 	    	 }
 	    	 if(!hsSeller.containsKey(sellerKey[sellerINDEX][0])){
-	    		 hsSeller.put(sellerKey[sellerINDEX][0], 1);
+	    		 hsSeller.put(sellerKey[sellerINDEX][0], (Integer) amount.get(i));
 	    	 }else{
-	    		 hsSeller.put(sellerKey[sellerINDEX][0], hsSeller.get(sellerKey[sellerINDEX][0])+1);
+	    		 hsSeller.put(sellerKey[sellerINDEX][0], hsSeller.get(sellerKey[sellerINDEX][0])+(Integer) amount.get(i));
 	    	
 	    	 }
-
+	    	// System.out.println("problem  seller" + i);
+	    	 
 	    	 Integer buyerINDEX = new Random().nextInt(BUYER);
 	    	 while(!buyerKey[buyerINDEX][1].equals(pl)){
 	    		 buyerINDEX  = new Random().nextInt(BUYER);
 	    	 }
 	    	 if(!hsBuyer.containsKey(buyerKey[buyerINDEX][0])){
-	    		 hsBuyer.put(buyerKey[buyerINDEX][0], 1);
+	    		 hsBuyer.put(buyerKey[buyerINDEX][0], (Integer) amount.get(i));
 	    	 }else{
-	    		 hsBuyer.put(buyerKey[buyerINDEX][0], hsBuyer.get(buyerKey[buyerINDEX][0])+1);
+	    		 hsBuyer.put(buyerKey[buyerINDEX][0], hsBuyer.get(buyerKey[buyerINDEX][0])+(Integer) amount.get(i));
+	    	 }
+	    	// System.out.println("problem  buter" + i);
+	    	 
+	    	 TXTtran.println(TranKey[i][0] + "\t" + TranKey[i][1] + "\t" + genDate() + "\t" + amount.get(i)+"\t" + 
+	    	  genString(LENGTH)+ '\t' + sellerKey[sellerINDEX][0] + "\t" + buyerKey[buyerINDEX][0] + "\t" + itemKey[itemINDEX][0]);
+	     }
+	     //System.out.println("Im done");
+	
+	     for(int i = 0; i < BUYER; i++){
+	    	 Integer purchase = hsBuyer.get(buyerKey[i][0]);
+	    	 if(purchase == null){
+	    		 purchase = 0;
 	    	 }
 	    	 
-	    
-	    	 
-	    	 TXTtran.println(TranKey[i][0] + "\t" + TranKey[i][1] + "\t" + genDate() + "\t" + new Random().nextInt(10000)+"\t" + 
-	    	  genString(LENGTH)+ '\t' + sellerKey[sellerINDEX][0] + "\t" + buyerKey[buyerINDEX][0] + "\t" + itemKey[itemINDEX][0]);
-	     
-	     }
-	     
-	   //  System.out.println(hsBuyer.entrySet().toString()); 
-	   //  System.out.println(hsSeller.entrySet().toString()); 
-	     
-	     for(int i = 0; i < BUYER; i++){
 	    	 TXTbuyer.println(buyerKey[i][0] + "\t" + buyerKey[i][1] +"\t" + genString(LENGTH) + "\t"
-	    	 		+ genDate() + "\t"  + hsBuyer.get(buyerKey[i][0]));
+	    	 		+ genDate() + "\t"  + purchase);
 	     }
 	     
 	     for(int i = 0; i < SELLER; i++){
+	    	 Integer sell = hsSeller.get(sellerKey[i][0]);
+	    	 if(sell == null){
+	    		 sell = 0;
+	    	 }
 	    	 TXTseller.println(sellerKey[i][0] + "\t" + sellerKey[i][1] +"\t" + genString(LENGTH) + "\t"
-	    	 		+ new Random().nextInt(10) +"\t" + genDate() + "\t"  +hsSeller.get(sellerKey[i][0]));
+	    	 		+ new Random().nextInt(10) +"\t" + genDate() + "\t"  +sell);
 	     }
 	     
-	    
 	     
 	     //generate sell from sellerkey and itemkey. so they can be referenced
 	     for(int i = 0; i < SELLER; i++){
