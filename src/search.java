@@ -34,7 +34,7 @@ public class search {
 	            System.out.println("|1.Insert a new transaction.                                                                              |");
 	            System.out.println("|2.Query the top seller in each platform and update their rating.                                         |");
 	            System.out.println("|3.Compare the total sells of all platforms                                                               |");
-	            System.out.println("|4.Update     |");
+	            System.out.println("|4.Update any existing item information                                                                   |");
 	            System.out.println("|5.Delete fans whose age is larger than a specific number and teamName is equivalent to the user input.   |");
 	            System.out.println("|6.Quit                                                                                                   |");
 	            System.out.println("***********************************************************************************************************");
@@ -61,8 +61,7 @@ public class search {
 	                    	srh.Compare(conn);
 	                        break;
 	                    case 4:
-	                        //Update a team's city and arena base on the team's name or team's rank, which focuses on the top teams.
-	                       // nba.update_team(conn);
+	                    	updateItem(conn);
 	                        break;
 	                    case 5:
 	                        //Delete fans whose age is larger than user input and teamName is equivalent to the user input
@@ -186,6 +185,7 @@ public class search {
             	 System.out.println("invalid input, try again");
              }
 		     }
+		     st.close();
 	    }
 	    
 	    public void Compare(Connection conn) throws SQLException {
@@ -199,8 +199,194 @@ public class search {
 		    	 pl.add(new platform(rs.getString("Platform"), rs.getInt("sells")));
 			     System.out.println("Platform: " + rs.getString("Platform") + " Total Sells: " + rs.getInt("sells"));
 		     }
-		     
 		     new chart(pl).print();
+		     st.close();
+	    }
+	    
+	    public static void updateItem(Connection conn) throws SQLException{
+	    	 System.out.println("please input the itemID");
+	     	 Scanner scan_num = new Scanner(System.in);
+             int itemID = scan_num.nextInt();
+             System.out.println("please input the platform");
+         	 Scanner scan_num3 = new Scanner(System.in);
+             String plat = scan_num3.next();
+             Statement st = conn.createStatement();
+		     String sql = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+		     st.executeQuery(sql);
+		     ResultSet rs = st.getResultSet();
+		     System.out.println();
+		     System.out.println("The current tuple:");
+		     while(rs.next()){
+			     System.out.println("ItemID: " + rs.getInt("ItemId") + ", Platform: " + rs.getString("Platform")
+			    		 + ", ManfName: "+rs.getString("ManfName") + ", Category: " + rs.getString("Category")
+			    		 + ", Model: " + rs.getString("Model") + ", Title: " + rs.getString("Title") + ", Price: "+
+			    		 rs.getInt("Price") + ", ImageURL: " + rs.getString("ImageUrl") + ", Description: " + rs.getString("Description"));
+		     }
+		     rs.close();
+		    System.out.println("************************************  Result successfully fetched!   ********************************************");
+            System.out.println("|1.ManfName                                                                                                      |");
+            System.out.println("|2.Category                                                                                                      |");
+            System.out.println("|3.Model                                                                                                         |");
+            System.out.println("|4.Title                                                                                                         |");
+            System.out.println("|5.Price                                                                                                         |");
+            System.out.println("|6.ImageURL                                                                                                      |");
+            System.out.println("|7.Description                                                                                                   |");
+            System.out.println("|8.exit                                                                                                          |");
+            System.out.println("******************************************************************************************************************");
+            outerloop:	
+            while(true){
+            	System.out.println("please choose a number to update attribute");
+            	Scanner scan_num2 = new Scanner(System.in);
+                int num2 = scan_num.nextInt();
+                String sql2, select;
+                ResultSet rs2;
+                int count;
+                Scanner temp;
+                Statement stm;
+                boolean quit = false;
+                switch (num2) {
+                    case 1:
+                    		stm = conn.createStatement();
+                    		select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+                    		stm.executeQuery(select);
+                    		rs2 = stm.getResultSet();
+                    		while(rs2.next()){
+                    		System.out.println("Current ManfName: " + rs2.getString("ManfName"));
+                    		}
+                    		System.out.println("Input new ManfName(must be an existing ManfName in DB): ");
+                    		temp = new Scanner(System.in);
+                            String ManfName = temp.next();
+                            sql2 = "update item set ManfName = '" + ManfName +"' where ItemId = " +
+                            itemID + " AND Platform = '" + plat +"'";
+                            count = stm.executeUpdate( sql2);
+                            stm.close();
+                            System.out.println(count + " row(s) was/were updated");
+                            break; 
+                    case 2:
+                    	stm = conn.createStatement();
+                   		select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+                		stm.executeQuery(select);
+                		rs2 = stm.getResultSet();
+                		while(rs2.next()){
+                			System.out.println("Current Categoty: " + rs2.getString("Category"));
+                		}	
+                		System.out.println("Input new Categoty: ");
+                		temp = new Scanner(System.in);
+                        String Categoty = temp.next();
+                        sql2 = "update item set Category = '" + Categoty +"' where ItemId = " +
+                        itemID + " AND Platform = '" + plat +"'";
+                        count = stm.executeUpdate( sql2);
+                        stm.close();
+                        System.out.println(count + " row(s) was/were updated");
+                        break;
+                    case 3:
+                    	stm = conn.createStatement();
+                 		select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+                		stm.executeQuery(select);
+                		rs2 = stm.getResultSet();
+                		while(rs2.next()){
+                		 	System.out.println("Current Model: " + rs2.getString("Model"));
+                		}
+                		System.out.println("Input new Model: ");
+                		temp = new Scanner(System.in);
+                        String Model = temp.next();
+                        sql2 = "update item set Model = '" + Model +"' where ItemId = " +
+                        itemID + " AND Platform = '" + plat +"'";
+                        count = stm.executeUpdate(sql2);
+                        stm.close();
+                        System.out.println(count + " row(s) was/were updated");
+                        break;
+                    case 4:
+                    	stm = conn.createStatement();
+                    	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+                		stm.executeQuery(select);
+                		rs2 = stm.getResultSet();
+                		while(rs2.next()){
+                           	System.out.println("Current Title: " + rs2.getString("Title"));
+                		}
+                		System.out.println("Input new Title: ");
+                		temp = new Scanner(System.in);
+                        String Title = temp.next();
+                        sql2 = "update item set Title = '" + Title +"' where ItemId = " +
+                        itemID + " AND Platform = '" + plat +"'";
+                        count = stm.executeUpdate(sql2);
+                        stm.close();
+                        System.out.println(count + " row(s) was/were updated");
+                        break;
+                    case 5:
+                    	stm = conn.createStatement();
+                    	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+                		stm.executeQuery(select);
+                		rs2 = stm.getResultSet();
+                		while(rs2.next()){
+                          	System.out.println("Current Price: " + rs2.getInt("Price"));
+                		}
+                		System.out.println("Input new Price: ");
+                		temp = new Scanner(System.in);
+                        int Price = temp.nextInt();
+                        sql2 = "update item set Price = '" + Price +"' where ItemId = " +
+                        itemID + " AND Platform = '" + plat +"'";
+                        count = stm.executeUpdate(sql2);
+                        stm.close();
+                        System.out.println(count + " row(s) was/were updated");
+                        break;
+                    case 6:
+                    	stm = conn.createStatement();
+                    	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+                		stm.executeQuery(select);
+                		rs2 = stm.getResultSet();
+                		while(rs2.next()){
+                        	System.out.println("Current ImageURL: " + rs2.getString("ImageUrl"));
+                		}
+                		System.out.println("Input new ImageURL: ");
+                		temp = new Scanner(System.in);
+                        String ImageUrl = temp.next();
+                        sql2 = "update item set ImageUrl = '" + ImageUrl +"' where ItemId = " +
+                        itemID + " AND Platform = '" + plat +"'";
+                        count = stm.executeUpdate(sql2);
+                        stm.close();
+                        System.out.println(count + " row(s) was/were updated");
+                        break;
+                    case 7:
+                    	stm = conn.createStatement();
+                    	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+                		stm.executeQuery(select);
+                		rs2 = stm.getResultSet();
+                		while(rs2.next()){
+                        	System.out.println("Current Description: " + rs2.getString("Description"));
+                		}
+                		System.out.println("Input new Description: ");
+                		temp = new Scanner(System.in);
+                        String Description = temp.next();
+                        sql2 = "update item set Description = '" + Description +"' where ItemId = " +
+                        itemID + " AND Platform = '" + plat +"'";
+                        count = stm.executeUpdate(sql2);
+                        stm.close();
+                        System.out.println(count + " row(s) was/were updated");
+                        break;
+                    case 8://print updated tuple before exit
+                    	stm = conn.createStatement();
+                    	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
+                		stm.executeQuery(select);
+                		rs2 = stm.getResultSet();
+                    	 while(rs2.next()){
+                    		 System.out.println("The updated tuple:");
+                    		 System.out.println("ItemID: " + rs2.getInt("ItemId") + ", Platform: " + rs2.getString("Platform")
+            			    		 + ", ManfName: "+rs2.getString("ManfName") + ", Category: " + rs2.getString("Category")
+            			    		 + ", Model: " + rs2.getString("Model") + ", Title: " + rs2.getString("Title") + ", Price: "+
+            			    		 rs2.getInt("Price") + ", ImageURL: " + rs2.getString("ImageUrl") + ", Description: " + rs2.getString("Description"));
+            		     }
+                    	 stm.close();
+            		  //   st.close();
+                    	 quit=true;
+                    	break outerloop;
+                    default:
+       
+                    	System.out.println("Wrong input, try again, choose 1 - 8");
+                }
+		    }
+		  
+        
 	    }
 	    
 }
