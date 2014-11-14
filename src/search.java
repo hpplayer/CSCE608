@@ -25,16 +25,16 @@ public class search {
 	            String url = "jdbc:mysql://localhost:3306/hpplayer-608_proj2";
 	   	        Class.forName("com.mysql.jdbc.Driver").newInstance();
 	            conn = DriverManager.getConnection (url, userName, password);
-	            System.out.println("Database connection established.");    //Display connection established!
+	            System.out.println("Database connection established. Welcome Aboard!");    //Display connection established!
 	            System.out.println();
 	            //MENU: A list of queries for user
 	            System.out.println("***********************************************************************************************************");
-	            System.out.println("|                                             E-Commerce Statistics                                       |");
+	            System.out.println("|                                      E-Commerce Management System                                       |");
 	            System.out.println("***********************************************************************************************************");
 	            System.out.println("|1.Insert a new transaction.                                                                              |");
 	            System.out.println("|2.Query the top seller in each platform and update their rating.                                         |");
 	            System.out.println("|3.Compare the total sells of all platforms                                                               |");
-	            System.out.println("|4.Update a team's city and arena based on its name or its rank, which only focuses on the top teams.     |");
+	            System.out.println("|4.Update     |");
 	            System.out.println("|5.Delete fans whose age is larger than a specific number and teamName is equivalent to the user input.   |");
 	            System.out.println("|6.Quit                                                                                                   |");
 	            System.out.println("***********************************************************************************************************");
@@ -85,10 +85,9 @@ public class search {
 	        } catch (SQLException e) {
 	            System.err.println ("Error message: " + e.getMessage ());     //catch error message
 	            System.err.println ("Error number: " + e.getErrorCode ());    //catch numeric error code
-	            System.out.println("SQLState: " + e.getSQLState());
+	            System.err.println("SQLState: " + e.getSQLState());
 	        } catch (Exception e) {
-	        	  System.err.println (e.getMessage()); 
-	        	// System.err.println ("Cannot connect to database server");
+	        	  System.err.println ("Oops! we got an error: " + e.getMessage()); 
 	        } finally
 	        {
 	            if (conn != null)
@@ -96,7 +95,7 @@ public class search {
 	                try
 	                {
 	                    conn.close ();
-	                    System.out.println ("Database connection terminated");       //Display connection terminated!
+	                    System.out.println ("Database connection terminated. Good Bye!");       //Display connection terminated!
 	                }
 	                catch (Exception e) { System.err.println("Database termination error."); }
 	            }

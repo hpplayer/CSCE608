@@ -2,6 +2,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,14 +15,14 @@ public class data {
 	//the number of sell and buy are random number, other numbers are defined below
 	public final static int LENGTH = 5;
 	public final static int numofpla = 5;
-	public final static int PRICElen = 4;
+	public final static int PRICEupbound = 1000;
 	public final static int ITEM = 100;
 	public final static int BUYER = 100;
 	public final static int SELLER = 100;
 	public final static int manf = 100;
 	public final static int total_Tran =1000;//total number of number * sell or number * purchase
 	public static int Tran; //we assume each platform has same amount of transactions. so tran%numofpla should be 0;
-	public static String[] platform = new String[numofpla];// we have 10 platforms 
+	public static String[] platform = new String[numofpla];// we have 5 platforms 
 	public static ArrayList amount;
 	
 	//generate a random string with LENGTH defined above
@@ -28,7 +30,7 @@ public class data {
 		platform = genKeyS(numofpla);
 		int sum = 0;
 		amount = new ArrayList();
-		int num = 10;
+		int num = 10;//amount per transaction
 		while(true){
 			if(total_Tran - sum < 10){		
 				amount.add(total_Tran - sum);
@@ -55,6 +57,15 @@ public class data {
 	}
 	
 	//generate a random date
+	public static String genTranDate(){
+		long rangebegin = Timestamp.valueOf("1990-01-01 00:00:00").getTime();
+		long rangeend = Timestamp.valueOf("2014-10-10 24:59:59").getTime();
+		long diff = rangeend - rangebegin + 1;
+		Timestamp rand = new Timestamp(rangebegin + (long)(Math.random() * diff));
+		//System.out.println( rand.toString());
+		return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(rand);
+	}
+	
 	public static String genDate(){
 		long rangebegin = Date.valueOf("1930-01-01").getTime();
 		long rangeend = Date.valueOf("2014-12-31").getTime();
@@ -62,8 +73,6 @@ public class data {
 		Date rand = new Date(rangebegin + (long)(Math.random() * diff));
 		return rand.toString();
 	}
-	
-	
 	//generate a random int with LENGTH defined above
 	public static int genInt(int length){
 		Random rn = new Random();
@@ -154,7 +163,7 @@ public class data {
 	     
 	     for(int i = 0; i < ITEM; i++){
 	    	 TXTitem.println(itemKey[i][0] + "\t" + itemKey[i][1] +"\t" + manfKey[new Random().nextInt(manf)] + "\t"
-	    	 		+ genString(LENGTH) + "\t" + genString(LENGTH) + "\t"   +genString(LENGTH) + "\t" + genInt(PRICElen) + "\t"
+	    	 		+ genString(LENGTH) + "\t" + genString(LENGTH) + "\t"   +genString(LENGTH) + "\t" + new Random().nextInt(PRICEupbound) + "\t"
 	    	 		+ genString(LENGTH) + "\t"+genString(LENGTH));
 	     }
 	     
@@ -193,7 +202,7 @@ public class data {
 	    	 }
 	    	// System.out.println("problem  buter" + i);
 	    	 
-	    	 TXTtran.println(TranKey[i][0] + "\t" + TranKey[i][1] + "\t" + genDate() + "\t" + amount.get(i)+"\t" + 
+	    	 TXTtran.println(TranKey[i][0] + "\t" + TranKey[i][1] + "\t" + genTranDate() + "\t" + amount.get(i)+"\t" + 
 	    	  genString(LENGTH)+ '\t' + sellerKey[sellerINDEX][0] + "\t" + buyerKey[buyerINDEX][0] + "\t" + itemKey[itemINDEX][0]);
 	     }
 	     //System.out.println("Im done");

@@ -59,7 +59,7 @@ public ChartPanel getChartPanel(){
 	
 }
 public void print(){
-	JFrame frame=new JFrame("chart");
+	JFrame frame=new JFrame("Total Sells");
 	frame.setBounds(300,300,300,300);
 	frame.setSize(1000, 600);     
 	frame.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
