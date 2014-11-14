@@ -154,7 +154,7 @@ public class data {
 	     
 	     for(int i = 0; i < ITEM; i++){
 	    	 TXTitem.println(itemKey[i][0] + "\t" + itemKey[i][1] +"\t" + manfKey[new Random().nextInt(manf)] + "\t"
-	    	 		+ genString(LENGTH) + "\t" + genString(LENGTH) + "\t" + genInt(PRICElen) + "\t" +genString(LENGTH) + "\t"
+	    	 		+ genString(LENGTH) + "\t" + genString(LENGTH) + "\t"   +genString(LENGTH) + "\t" + genInt(PRICElen) + "\t"
 	    	 		+ genString(LENGTH) + "\t"+genString(LENGTH));
 	     }
 	     
