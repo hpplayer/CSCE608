@@ -35,7 +35,7 @@ public class search {
 	            System.out.println("|2.Query the top seller in each platform and update their rating.                                         |");
 	            System.out.println("|3.Compare the total sells of all platforms                                                               |");
 	            System.out.println("|4.Update any existing item information                                                                   |");
-	            System.out.println("|5.Delete fans whose age is larger than a specific number and teamName is equivalent to the user input.   |");
+	            System.out.println("|5.Delete buyers who has not purchased any item since a specific date                                     |");
 	            System.out.println("|6.Quit                                                                                                   |");
 	            System.out.println("***********************************************************************************************************");
 
@@ -61,11 +61,12 @@ public class search {
 	                    	srh.Compare(conn);
 	                        break;
 	                    case 4:
-	                    	updateItem(conn);
+	                    	//update information of any item
+	                    	srh.updateItem(conn);
 	                        break;
 	                    case 5:
 	                        //Delete fans whose age is larger than user input and teamName is equivalent to the user input
-	                      //  nba.delete_teams(conn);
+	                    	srh.clear(conn);
 	                        break;
 	                    case 6:
 	                        //Quit the query
@@ -203,7 +204,7 @@ public class search {
 		     st.close();
 	    }
 	    
-	    public static void updateItem(Connection conn) throws SQLException{
+	    public void updateItem(Connection conn) throws SQLException{
 	    	 System.out.println("please input the itemID");
 	     	 Scanner scan_num = new Scanner(System.in);
              int itemID = scan_num.nextInt();
@@ -215,7 +216,7 @@ public class search {
 		     st.executeQuery(sql);
 		     ResultSet rs = st.getResultSet();
 		     System.out.println();
-		     System.out.println("The current tuple:");
+		     System.out.println("Fetched current tuple:");
 		     while(rs.next()){
 			     System.out.println("ItemID: " + rs.getInt("ItemId") + ", Platform: " + rs.getString("Platform")
 			    		 + ", ManfName: "+rs.getString("ManfName") + ", Category: " + rs.getString("Category")
@@ -223,7 +224,7 @@ public class search {
 			    		 rs.getInt("Price") + ", ImageURL: " + rs.getString("ImageUrl") + ", Description: " + rs.getString("Description"));
 		     }
 		     rs.close();
-		    System.out.println("************************************  Result successfully fetched!   ********************************************");
+		    System.out.println("************************************  Data successfully fetched!   ***********************************************");
             System.out.println("|1.ManfName                                                                                                      |");
             System.out.println("|2.Category                                                                                                      |");
             System.out.println("|3.Model                                                                                                         |");
@@ -387,6 +388,44 @@ public class search {
 		    }
 		  
         
+	    }
+	    
+	    public void clear(Connection conn) throws SQLException {
+	    	System.out.println("please specify the criteria date (date format: YYYY-MM-DD) required for filtration");
+	    	Scanner scan = new Scanner(System.in);
+            String date = scan.next();
+            Statement st = conn.createStatement();
+		    String sql = " SELECT * FROM BUYER WHERE (BuyerID, Platform ) NOT IN "
+		    		+ "(SELECT BuyerID, Platform from transaction where Amount > 1 AND Time > '" + date +"')";
+		    ResultSet rs= st.executeQuery(sql);
+		    int count = 0;
+		    if (rs != null)   
+		    {  
+		    rs.beforeFirst();  
+		    rs.last();  
+		    count = rs.getRow();
+		    }
+		    if(count == 0){
+		    	 System.out.println(count + " rows(s) returned, and no action is required at this time");
+		    	return;
+		    }
+		    System.out.println(count + " rows(s) returned, you sure want to delete them all? (y/n)");
+		
+		    Scanner scan_num = new Scanner(System.in);
+            String boo = scan_num.next();
+            if(boo.equals("y")){
+            	int count2 = 0;
+           		 count2 = st.executeUpdate("DELETE FROM BUYER WHERE (BuyerID, Platform ) NOT IN"
+           		 		+ " (SELECT BuyerID, Platform from transaction where Amount > 1 AND Time > '" + date +"')");
+               	 System.out.println(count + " row(s) was/were successfully deleted");
+            }
+            else if (boo.equals("n")){
+           	 System.out.println("You choose \"n\" and no action is required at this time");
+            }
+            else{
+           	 System.out.println("invalid input, try again");
+            }
+		    st.close();
 	    }
 	    
 }
