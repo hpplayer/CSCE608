@@ -59,6 +59,7 @@ public ChartPanel getChartPanel(){
 	
 }
 public void print(){
+	//create JFrame first and adjust its size and position.
 	JFrame frame=new JFrame("Total Sells");
 	frame.setBounds(300,300,300,300);
 	frame.setSize(1000, 600);     

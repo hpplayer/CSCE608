@@ -35,7 +35,7 @@ public class search {
 	            System.out.println("|2.Query the top seller in each platform and update their rating.                                         |");
 	            System.out.println("|3.Compare the total sells of all platforms                                                               |");
 	            System.out.println("|4.Update any existing item information                                                                   |");
-	            System.out.println("|5.Delete fans whose age is larger than a specific number and teamName is equivalent to the user input.   |");
+	            System.out.println("|5.Delete buyers who has not purchased any item since a specific date                                     |");
 	            System.out.println("|6.Quit                                                                                                   |");
 	            System.out.println("***********************************************************************************************************");
 
@@ -61,11 +61,12 @@ public class search {
 	                    	srh.Compare(conn);
 	                        break;
 	                    case 4:
-	                    	updateItem(conn);
+	                    	//update information of any item
+	                    	srh.updateItem(conn);
 	                        break;
 	                    case 5:
-	                        //Delete fans whose age is larger than user input and teamName is equivalent to the user input
-	                      //  nba.delete_teams(conn);
+	                        //Delete buyer who does not have any transaction record since a specific date
+	                    	srh.clear(conn);
 	                        break;
 	                    case 6:
 	                        //Quit the query
@@ -84,7 +85,7 @@ public class search {
 	        } catch (SQLException e) {
 	            System.err.println ("Error message: " + e.getMessage ());     //catch error message
 	            System.err.println ("Error number: " + e.getErrorCode ());    //catch numeric error code
-	            System.err.println("SQLState: " + e.getSQLState());
+	            System.err.println("SQLState: " + e.getSQLState());			//catch SQL state
 	        } catch (Exception e) {
 	        	  System.err.println ("Oops! we got an error: " + e.getMessage()); 
 	        } finally
@@ -104,7 +105,7 @@ public class search {
 	    }//end main method
 	  
 
-	  //insert a new arena record
+	  //insert a new transaction record
 	    public void insert_trans(Connection conn) throws SQLException {
 	    	int maxID = 0, Amount, SellerID, BuyerID, ItemID, count;
 	    	String Platform, Time, paymentType;
@@ -148,6 +149,7 @@ public class search {
 
 	    }
 	    
+	    //query the top sellers in each platform
 	    public void queryTop(Connection conn) throws SQLException {
 	    	ArrayList<String> platform = new ArrayList<String>();
 	    	ArrayList<Integer> Seller = new ArrayList<Integer>(); 
@@ -156,17 +158,19 @@ public class search {
 		     String sql = "select SellerID, Platform, Rating from seller group by Platform having max(NumOfSells)";
 		     st.executeQuery(sql);
 		     ResultSet rs = st.getResultSet();
-		     while(rs.next()){
+		     while(rs.next()){//display fetched information 
 		    	 platform.add(rs.getString("Platform"));
 		    	 Seller.add(rs.getInt("SellerID"));
 			     System.out.println("Platform: " + rs.getString("Platform") + " Top SellerID: " + rs.getInt("SellerID") + " current Rating: " +
 		    	 rs.getInt("Rating"));
 		     }
+		     //ask user whether increase those sellers' rating by 1
 		     while(true){
 		     System.out.println("Upgrade Top Sellers' Rating by 1 ? (y/n)");
+		     //get user input
 	    	 Scanner scan_num = new Scanner(System.in);
              String boo = scan_num.next();
-             if(boo.equals("y")){
+             if(boo.equals("y")){//case user chooses yes
             	 int count = 0;
             	 while(!Seller.isEmpty()){
             		 Statement s = conn.createStatement();
@@ -177,20 +181,21 @@ public class search {
             	 System.out.println(count + " row(s) was/were successfully updated");
             	 break;
              }
-             else if (boo.equals("n")){
+             else if (boo.equals("n")){//case user chooses no
             	 System.out.println("You choose \"n\" and no action is required at this time");
             	 break;
              }
-             else{
+             else{//invalid input case
             	 System.out.println("invalid input, try again");
              }
 		     }
 		     st.close();
 	    }
-	    
+	   
+	    //compare the total sells of every platform
 	    public void Compare(Connection conn) throws SQLException {
+	    	//create a platform arraylist to store platforms
 		     ArrayList<platform> pl = new ArrayList<platform>();
-		     
 	    	 Statement st = conn.createStatement();
 		     String sql = "select platform, sum(Amount) as sells from transaction group by Platform";
 		     st.executeQuery(sql);
@@ -199,23 +204,41 @@ public class search {
 		    	 pl.add(new platform(rs.getString("Platform"), rs.getInt("sells")));
 			     System.out.println("Platform: " + rs.getString("Platform") + " Total Sells: " + rs.getInt("sells"));
 		     }
+		     //call chart class to output bar chart
 		     new chart(pl).print();
 		     st.close();
 	    }
 	    
-	    public static void updateItem(Connection conn) throws SQLException{
+	    //choose to update any existing item tuple
+	    public void updateItem(Connection conn) throws SQLException{
+	    	//get itemID and platform from user input
 	    	 System.out.println("please input the itemID");
 	     	 Scanner scan_num = new Scanner(System.in);
              int itemID = scan_num.nextInt();
              System.out.println("please input the platform");
          	 Scanner scan_num3 = new Scanner(System.in);
              String plat = scan_num3.next();
+             //query database to retrieve the tuple
              Statement st = conn.createStatement();
 		     String sql = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
 		     st.executeQuery(sql);
 		     ResultSet rs = st.getResultSet();
 		     System.out.println();
-		     System.out.println("The current tuple:");
+		     //handle the case if query result is empty
+		     int countRS = 0;
+			    if (rs != null)   
+			    {  
+			    rs.beforeFirst();  
+			    rs.last();  
+			    countRS = rs.getRow();
+			    }
+			    if(countRS == 0){
+			    	 System.out.println(countRS + " rows(s) returned, and no action is required at this time");
+			    	return;
+			    }
+			  //print fetched tuple
+		     System.out.println("Fetched current tuple:");
+		     rs.beforeFirst(); 
 		     while(rs.next()){
 			     System.out.println("ItemID: " + rs.getInt("ItemId") + ", Platform: " + rs.getString("Platform")
 			    		 + ", ManfName: "+rs.getString("ManfName") + ", Category: " + rs.getString("Category")
@@ -223,7 +246,8 @@ public class search {
 			    		 rs.getInt("Price") + ", ImageURL: " + rs.getString("ImageUrl") + ", Description: " + rs.getString("Description"));
 		     }
 		     rs.close();
-		    System.out.println("************************************  Result successfully fetched!   ********************************************");
+		    //display attributes in tuple that can be updated
+		    System.out.println("************************************  Data successfully fetched!   ***********************************************");
             System.out.println("|1.ManfName                                                                                                      |");
             System.out.println("|2.Category                                                                                                      |");
             System.out.println("|3.Model                                                                                                         |");
@@ -245,7 +269,7 @@ public class search {
                 Statement stm;
                 boolean quit = false;
                 switch (num2) {
-                    case 1:
+                    case 1://Manfname
                     		stm = conn.createStatement();
                     		select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
                     		stm.executeQuery(select);
@@ -262,7 +286,7 @@ public class search {
                             stm.close();
                             System.out.println(count + " row(s) was/were updated");
                             break; 
-                    case 2:
+                    case 2://Category
                     	stm = conn.createStatement();
                    		select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
                 		stm.executeQuery(select);
@@ -279,7 +303,7 @@ public class search {
                         stm.close();
                         System.out.println(count + " row(s) was/were updated");
                         break;
-                    case 3:
+                    case 3://Model
                     	stm = conn.createStatement();
                  		select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
                 		stm.executeQuery(select);
@@ -296,7 +320,7 @@ public class search {
                         stm.close();
                         System.out.println(count + " row(s) was/were updated");
                         break;
-                    case 4:
+                    case 4://Title
                     	stm = conn.createStatement();
                     	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
                 		stm.executeQuery(select);
@@ -313,7 +337,7 @@ public class search {
                         stm.close();
                         System.out.println(count + " row(s) was/were updated");
                         break;
-                    case 5:
+                    case 5://Price
                     	stm = conn.createStatement();
                     	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
                 		stm.executeQuery(select);
@@ -330,7 +354,7 @@ public class search {
                         stm.close();
                         System.out.println(count + " row(s) was/were updated");
                         break;
-                    case 6:
+                    case 6://ImageURL
                     	stm = conn.createStatement();
                     	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
                 		stm.executeQuery(select);
@@ -347,7 +371,7 @@ public class search {
                         stm.close();
                         System.out.println(count + " row(s) was/were updated");
                         break;
-                    case 7:
+                    case 7://Description
                     	stm = conn.createStatement();
                     	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
                 		stm.executeQuery(select);
@@ -364,7 +388,8 @@ public class search {
                         stm.close();
                         System.out.println(count + " row(s) was/were updated");
                         break;
-                    case 8://print updated tuple before exit
+                    case 8://exit
+                    	//print updated tuple before exit
                     	stm = conn.createStatement();
                     	select = "select * from item where Itemid = " + itemID + " AND Platform = '" + plat + "';";
                 		stm.executeQuery(select);
@@ -377,16 +402,57 @@ public class search {
             			    		 rs2.getInt("Price") + ", ImageURL: " + rs2.getString("ImageUrl") + ", Description: " + rs2.getString("Description"));
             		     }
                     	 stm.close();
-            		  //   st.close();
                     	 quit=true;
                     	break outerloop;
-                    default:
-       
+                    default://handle invalid input
                     	System.out.println("Wrong input, try again, choose 1 - 8");
                 }
 		    }
 		  
         
+	    }
+	    
+	    //clear all inactive users since a specific date
+	    public void clear(Connection conn) throws SQLException {
+	    	System.out.println("please specify the criteria date (date format: YYYY-MM-DD) required for filtration");
+	    	//get user input
+	    	Scanner scan = new Scanner(System.in);
+            String date = scan.next();
+            Statement st = conn.createStatement();
+            //select tuples that matched the criteria 
+		    String sql = " SELECT * FROM BUYER WHERE (BuyerID, Platform ) NOT IN "
+		    		+ "(SELECT BuyerID, Platform from transaction where Amount > 1 AND Time > '" + date +"')";
+		    ResultSet rs= st.executeQuery(sql);
+		    int count = 0;
+		    if (rs != null)   
+		    {  
+		    rs.beforeFirst();  
+		    rs.last();  
+		    count = rs.getRow();
+		    }
+		    //handle the case that if result is empty
+		    if(count == 0){
+		    	 System.out.println(count + " rows(s) returned, and no action is required at this time");
+		    	return;
+		    }
+		    //let user confirm choice one more time
+		    System.out.println(count + " rows(s) returned, you sure want to delete them all? (y/n)");
+		
+		    Scanner scan_num = new Scanner(System.in);
+            String boo = scan_num.next();
+            if(boo.equals("y")){//delete rows
+            	int count2 = 0;
+           		 count2 = st.executeUpdate("DELETE FROM BUYER WHERE (BuyerID, Platform ) NOT IN"
+           		 		+ " (SELECT BuyerID, Platform from transaction where Amount > 1 AND Time > '" + date +"')");
+               	 System.out.println(count + " row(s) was/were successfully deleted");
+            }
+            else if (boo.equals("n")){//no action requried
+           	 System.out.println("You choose \"n\" and no action is required at this time");
+            }
+            else{//hanld invalid input
+           	 System.out.println("invalid input, try again");
+            }
+		    st.close();
 	    }
 	    
 }
